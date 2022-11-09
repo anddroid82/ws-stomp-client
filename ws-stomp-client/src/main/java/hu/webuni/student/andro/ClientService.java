@@ -3,11 +3,15 @@ package hu.webuni.student.andro;
 import java.lang.reflect.Type;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -18,13 +22,25 @@ public class ClientService implements StompFrameHandler {
 	private final String serverUrl = "ws://localhost:8080/api/stomp/";
 	private final String topicNumber = "1156"; //csak teszthez fixen
 	private StompSession stompSession;
+	private StompSessionHandler stompSessionHandler;
 	
 	public void connect() {
 		webSocketStompClient = new WebSocketStompClient(new StandardWebSocketClient());
-		StompSessionHandler sessionHandler = new CustomStompSessionHandler();
+		stompSessionHandler = new CustomStompSessionHandler();
 		try {
-			stompSession = webSocketStompClient.connect(serverUrl, sessionHandler).get();
-			//stompSession.subscribe("/topic/course/" + topicNumber, this);
+			
+			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
+	        StompHeaders connectHeaders = new StompHeaders();
+	        
+	        webSocketStompClient.setTaskScheduler(new DefaultManagedTaskScheduler());
+	        ListenableFuture<StompSession> connectListener = webSocketStompClient.connect(serverUrl, new WebSocketHttpHeaders(),connectHeaders, stompSessionHandler);
+	        stompSession = connectListener.get();
+			
+	        synchronized (this.stompSession){
+	            StompSession s = this.stompSession;
+	            s.subscribe("/topic/course/"+topicNumber, this);
+	        }
+	        
 		} catch (InterruptedException | ExecutionException e) {
 			System.out.println(e.getLocalizedMessage());
 			e.printStackTrace();
