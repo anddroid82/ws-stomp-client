@@ -8,6 +8,7 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -19,16 +20,16 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 public class ClientService implements StompFrameHandler {
 	
 	private WebSocketStompClient webSocketStompClient;
-	private final String serverUrl = "ws://localhost:8080/api/stomp/";
-	private final String topicNumber = "1156"; //csak teszthez fixen
+	private final String serverUrl = "ws://localhost:8080/api/stomp";
+	private final String topicNumber = "1201"; //csak teszthez fixen
 	private StompSession stompSession;
 	private StompSessionHandler stompSessionHandler;
 	
+	@Async
 	public void connect() {
 		webSocketStompClient = new WebSocketStompClient(new StandardWebSocketClient());
 		stompSessionHandler = new CustomStompSessionHandler();
 		try {
-			
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 	        StompHeaders connectHeaders = new StompHeaders();
 	        
@@ -36,10 +37,12 @@ public class ClientService implements StompFrameHandler {
 	        ListenableFuture<StompSession> connectListener = webSocketStompClient.connect(serverUrl, new WebSocketHttpHeaders(),connectHeaders, stompSessionHandler);
 	        stompSession = connectListener.get();
 			
-	        synchronized (this.stompSession){
+	        //stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
+	        
+	        /*synchronized (this.stompSession){
 	            StompSession s = this.stompSession;
 	            s.subscribe("/topic/course/"+topicNumber, this);
-	        }
+	        }*/
 	        
 		} catch (InterruptedException | ExecutionException e) {
 			System.out.println(e.getLocalizedMessage());
