@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.AllArgsConstructor;
@@ -17,8 +18,8 @@ public class Controller {
 	
 	@Async
 	@GetMapping
-	public ResponseEntity<String> connect(){
-		clientService.connect();
+	public ResponseEntity<String> connect(@RequestParam String topic){
+		clientService.connect(topic);
 		return ResponseEntity.ok("hello");
 	}
 }

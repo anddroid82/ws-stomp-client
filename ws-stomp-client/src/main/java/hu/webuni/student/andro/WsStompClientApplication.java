@@ -17,7 +17,7 @@ public class WsStompClientApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		clientService.connect();
+		//clientService.connect();
 	}
 
 }
