@@ -21,7 +21,7 @@ public class ClientService implements StompFrameHandler {
 	
 	private WebSocketStompClient webSocketStompClient;
 	private final String serverUrl = "ws://localhost:8080/api/stomp";
-	private final String topicNumber = "1201"; //csak teszthez fixen
+	private final String topicNumber = "1216"; //csak teszthez fixen
 	private StompSession stompSession;
 	private StompSessionHandler stompSessionHandler;
 	
@@ -37,12 +37,12 @@ public class ClientService implements StompFrameHandler {
 	        ListenableFuture<StompSession> connectListener = webSocketStompClient.connect(serverUrl, new WebSocketHttpHeaders(),connectHeaders, stompSessionHandler);
 	        stompSession = connectListener.get();
 			
-	        //stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
+	        stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
 	        
-	        /*synchronized (this.stompSession){
+	        synchronized (this.stompSession){
 	            StompSession s = this.stompSession;
 	            s.subscribe("/topic/course/"+topicNumber, this);
-	        }*/
+	        }
 	        
 		} catch (InterruptedException | ExecutionException e) {
 			System.out.println(e.getLocalizedMessage());
@@ -58,7 +58,7 @@ public class ClientService implements StompFrameHandler {
 
 	@Override
 	public Type getPayloadType(StompHeaders headers) {
-		return null;
+		return Message.class;
 	}
 
 }
