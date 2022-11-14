@@ -8,7 +8,6 @@ import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -21,23 +20,22 @@ public class ClientService implements StompFrameHandler {
 	
 	private WebSocketStompClient webSocketStompClient;
 	private final String serverUrl = "ws://localhost:8080/api/stomp";
-	private final String topicNumber = "1276"; //csak teszthez fixen
 	private StompSession stompSession;
 	private StompSessionHandler stompSessionHandler;
 	
-	@Async
-	public void connect(String topic) {
+	public void connect(String topic, String token) {
 		webSocketStompClient = new WebSocketStompClient(new StandardWebSocketClient());
 		stompSessionHandler = new CustomStompSessionHandler();
 		try {
 			webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 	        StompHeaders connectHeaders = new StompHeaders();
+	        connectHeaders.add("X-Authorization", "Bearer "+token);
 	        
 	        webSocketStompClient.setTaskScheduler(new DefaultManagedTaskScheduler());
 	        ListenableFuture<StompSession> connectListener = webSocketStompClient.connect(serverUrl, new WebSocketHttpHeaders(),connectHeaders, stompSessionHandler);
 	        stompSession = connectListener.get();
 			
-	        stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
+	        //stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
 	        
 	        synchronized (this.stompSession){
 	            StompSession s = this.stompSession;
