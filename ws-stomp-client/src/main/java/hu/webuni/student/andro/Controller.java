@@ -1,6 +1,7 @@
 package hu.webuni.student.andro;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,29 +22,45 @@ public class Controller {
 	@Autowired
 	private ClientService clientService;
 	private String token;
-	private final String url="http://localhost:8080";
+	@Value("${stompserver.url}")
+	private String URL;
+	@Value("${stompserver.endpoint}")
+	private String endpoint;
 	
-	@GetMapping
-	public ResponseEntity<String> connect(@RequestParam String topic){
+	@GetMapping("/connectandsubscribe")
+	public ResponseEntity<String> connectAndSubscribe(@RequestParam String topic){
 		if (token != null) {
 			clientService.connect(topic,token);
-			return ResponseEntity.ok("ok");
+			return ResponseEntity.ok(token);
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	}
+	 
 	
 	@PostMapping("/login")
 	public ResponseEntity<String> getToken(@RequestBody ClientUser user){
-		WebClient webClient = WebClient.create(url);
-		token=webClient
+		setToken(user);
+		return ResponseEntity.ok(token);
+	}
+
+	private void setToken(ClientUser user) {
+		WebClient webClient = WebClient.create(URL);
+		this.token=webClient
 				.post()
-				.uri("/api/login")
+				.uri(this.endpoint)
 				.body(Mono.just(user),ClientUser.class)
 				.retrieve()
 				.bodyToMono(String.class).block();
-		//System.out.println(token);
-		return ResponseEntity.ok(token);
 	}
 	
+	@PostMapping
+	public ResponseEntity<String> loginConnectAndSubscribe(@RequestBody ClientUser user, @RequestParam String topic){
+		setToken(user);
+		if (token != null) {
+			clientService.connect(topic,token);
+			return ResponseEntity.ok(token);
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+	}
 	
 }
