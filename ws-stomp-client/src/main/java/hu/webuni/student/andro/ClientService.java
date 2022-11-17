@@ -3,6 +3,7 @@ package hu.webuni.student.andro;
 import java.lang.reflect.Type;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -19,7 +20,8 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 public class ClientService implements StompFrameHandler {
 	
 	private WebSocketStompClient webSocketStompClient;
-	private final String serverUrl = "ws://localhost:8080/api/stomp";
+	@Value("${stompserver.wsurl}")
+	private String serverUrl;
 	private StompSession stompSession;
 	private StompSessionHandler stompSessionHandler;
 	
@@ -34,8 +36,6 @@ public class ClientService implements StompFrameHandler {
 	        webSocketStompClient.setTaskScheduler(new DefaultManagedTaskScheduler());
 	        ListenableFuture<StompSession> connectListener = webSocketStompClient.connect(serverUrl, new WebSocketHttpHeaders(),connectHeaders, stompSessionHandler);
 	        stompSession = connectListener.get();
-			
-	        //stompSession=webSocketStompClient.connect(serverUrl, stompSessionHandler).get();
 	        
 	        synchronized (this.stompSession){
 	            StompSession s = this.stompSession;
@@ -51,7 +51,7 @@ public class ClientService implements StompFrameHandler {
 	@Override
 	public void handleFrame(StompHeaders headers, Object payload) {
 		Message msg = (Message) payload;
-		System.out.println("Received : " + msg.getMessage() + " from : " + msg.getUsername());
+		System.out.println("Üzenet : " + msg.getMessage() + " , tőle : " + msg.getUsername());
 	}
 
 	@Override
